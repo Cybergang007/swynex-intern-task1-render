@@ -1,0 +1,7 @@
+[
+  { "title": "Set up project repository", "description": "Initialise Git, add .gitignore and push to GitHub.", "completed": true },
+  { "title": "Build CRUD endpoints", "description": "Create, read, update and delete tasks backed by SQLite.", "completed": true },
+  { "title": "Add API-key authentication", "description": "Protect POST, PUT and DELETE with the x-api-key header.", "completed": true },
+  { "title": "Write API documentation", "description": "Document every endpoint in the README and OpenAPI spec.", "completed": false },
+  { "title": "Deploy to Render", "description": "Use the render.yaml blueprint and submit the live URL.", "completed": false }
+]

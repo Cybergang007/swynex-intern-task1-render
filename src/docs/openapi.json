@@ -1,0 +1,146 @@
+{
+  "openapi": "3.0.3",
+  "info": {
+    "title": "Swynex Task API",
+    "version": "2.0.0",
+    "description": "Task management REST API (Node.js, Express 5, SQLite). Reads are public; create, update and delete require an `x-api-key` header. Use the **Authorize** button to set the key."
+  },
+  "servers": [{ "url": "/" }],
+  "tags": [{ "name": "System" }, { "name": "Tasks" }],
+  "components": {
+    "securitySchemes": {
+      "ApiKeyAuth": { "type": "apiKey", "in": "header", "name": "x-api-key" }
+    },
+    "schemas": {
+      "Task": {
+        "type": "object",
+        "properties": {
+          "id": { "type": "integer", "example": 1 },
+          "title": { "type": "string", "example": "Write API docs" },
+          "description": { "type": "string", "example": "Document protected routes" },
+          "completed": { "type": "boolean", "example": false },
+          "created_at": { "type": "string", "example": "2026-11-26 09:30:00" },
+          "updated_at": { "type": "string", "example": "2026-11-26 09:30:00" }
+        }
+      },
+      "TaskCreate": {
+        "type": "object",
+        "required": ["title"],
+        "additionalProperties": false,
+        "properties": {
+          "title": { "type": "string", "minLength": 1, "maxLength": 120 },
+          "description": { "type": "string", "maxLength": 1000 },
+          "completed": { "type": "boolean", "default": false }
+        }
+      },
+      "TaskUpdate": {
+        "type": "object",
+        "minProperties": 1,
+        "additionalProperties": false,
+        "properties": {
+          "title": { "type": "string", "minLength": 1, "maxLength": 120 },
+          "description": { "type": "string", "maxLength": 1000 },
+          "completed": { "type": "boolean" }
+        }
+      },
+      "Error": {
+        "type": "object",
+        "properties": {
+          "success": { "type": "boolean", "example": false },
+          "error": {
+            "type": "object",
+            "properties": {
+              "code": { "type": "string", "example": "VALIDATION_ERROR" },
+              "message": { "type": "string" },
+              "details": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "properties": { "field": { "type": "string" }, "message": { "type": "string" } }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "parameters": {
+      "TaskId": {
+        "name": "id", "in": "path", "required": true,
+        "schema": { "type": "integer", "minimum": 1 }
+      }
+    },
+    "responses": {
+      "Validation": { "description": "Invalid JSON, invalid ID, or validation failure", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/Error" } } } },
+      "Unauthorized": { "description": "Missing or invalid x-api-key", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/Error" } } } },
+      "NotFound": { "description": "Task not found", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/Error" } } } }
+    }
+  },
+  "paths": {
+    "/health": {
+      "get": {
+        "tags": ["System"], "summary": "Health check",
+        "responses": { "200": { "description": "Service is up" } }
+      }
+    },
+    "/api/tasks": {
+      "get": {
+        "tags": ["Tasks"], "summary": "List all tasks (newest first)",
+        "responses": {
+          "200": {
+            "description": "List of tasks",
+            "content": { "application/json": { "schema": { "type": "object", "properties": {
+              "success": { "type": "boolean" },
+              "data": { "type": "array", "items": { "$ref": "#/components/schemas/Task" } }
+            } } } }
+          }
+        }
+      },
+      "post": {
+        "tags": ["Tasks"], "summary": "Create a task", "security": [{ "ApiKeyAuth": [] }],
+        "requestBody": { "required": true, "content": { "application/json": {
+          "schema": { "$ref": "#/components/schemas/TaskCreate" },
+          "example": { "title": "Write API docs", "description": "Document protected routes", "completed": false }
+        } } },
+        "responses": {
+          "201": { "description": "Task created", "content": { "application/json": { "schema": { "type": "object", "properties": { "success": { "type": "boolean" }, "data": { "$ref": "#/components/schemas/Task" } } } } } },
+          "400": { "$ref": "#/components/responses/Validation" },
+          "401": { "$ref": "#/components/responses/Unauthorized" }
+        }
+      }
+    },
+    "/api/tasks/{id}": {
+      "parameters": [{ "$ref": "#/components/parameters/TaskId" }],
+      "get": {
+        "tags": ["Tasks"], "summary": "Get one task",
+        "responses": {
+          "200": { "description": "The task", "content": { "application/json": { "schema": { "type": "object", "properties": { "success": { "type": "boolean" }, "data": { "$ref": "#/components/schemas/Task" } } } } } },
+          "400": { "$ref": "#/components/responses/Validation" },
+          "404": { "$ref": "#/components/responses/NotFound" }
+        }
+      },
+      "put": {
+        "tags": ["Tasks"], "summary": "Update a task (partial update)", "security": [{ "ApiKeyAuth": [] }],
+        "requestBody": { "required": true, "content": { "application/json": {
+          "schema": { "$ref": "#/components/schemas/TaskUpdate" },
+          "example": { "completed": true }
+        } } },
+        "responses": {
+          "200": { "description": "Updated task", "content": { "application/json": { "schema": { "type": "object", "properties": { "success": { "type": "boolean" }, "data": { "$ref": "#/components/schemas/Task" } } } } } },
+          "400": { "$ref": "#/components/responses/Validation" },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "404": { "$ref": "#/components/responses/NotFound" }
+        }
+      },
+      "delete": {
+        "tags": ["Tasks"], "summary": "Delete a task", "security": [{ "ApiKeyAuth": [] }],
+        "responses": {
+          "200": { "description": "Task deleted" },
+          "400": { "$ref": "#/components/responses/Validation" },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "404": { "$ref": "#/components/responses/NotFound" }
+        }
+      }
+    }
+  }
+}
