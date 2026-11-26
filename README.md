@@ -219,3 +219,13 @@ On Windows `cmd`, use double quotes and escape inner quotes (`-d "{\"title\":\"W
     ├── middleware/              # apiKeyAuth, errorHandler
     └── routes/                  # health + task routes
 ```
+
+## Deployment
+
+- **GitHub Repository:** https://github.com/Cybergang007/swynex-intern-task1-render
+- **Live Service URL:** https://swynex-task-api.onrender.com
+- **API Documentation:** https://swynex-task-api.onrender.com/docs
+- **Health Check:** https://swynex-task-api.onrender.com/health
+
+### Hosting
+Deployed using Render Web Services.
